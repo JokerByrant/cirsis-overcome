@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>列表页</title>
+
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+
+    <!--[if lt IE 9]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->    
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min14ed.css?v=3.3.6}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-table.min.css}">
+</head>
+<body >
+    <div class="wrapper wrapper-content animated fadeIn">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>查询条件</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        
+                        <form role="form" class="form-inline" id="searchForm" >
+						   <div class="form-group">
+                             <input type="text" placeholder="姓名" name="userName" id="userName" class="form-control">
+                           </div>
+ 						   <div class="form-group">
+                               <input type="text" placeholder="描述" name="desc" id="desc" class="form-control">
+                           </div>
+                            <button id="dictkey_search_btn" class="btn btn-primary" type="button" onclick="searchByCriteria()" >查询</button>
+                            <button id="dictkey_reset_btn" class="btn btn-info" type="button">重置</button>
+                        </form>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>        
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>结果列表</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">                        
+                   		<button id="addButton" class="btn btn-info  " type="button"><i class="fa fa-plus"></i> 新增</button>                    	
+                   		<button id="editButton" class="btn btn-info  " type="button"><i class="fa fa-edit"></i> 编辑</button>                    	
+                   		<button id="deleteButton" class="btn btn-danger  " type="button"><i class="fa fa-trash"></i> 删除</button>                    	                        
+                        <div class="table-responsive" >
+                            <!--  bootstrap Table 使用 -->
+							<table id="table"></table>
+		                </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+	<script th:src="@{/js/jquery.min.js?v=2.1.4}"></script>
+	<script th:src="@{/js/bootstrap.min.js}"></script>
+	<script th:src="@{/js/bootstrap-table.min.js}"></script>
+	<script th:src="@{/js/bootstrap-table-zh-CN.min.js}"></script>
+	<script th:inline="javascript" >
+	//获取查询参数，对表单中查询参数的封装
+ 	$.fn.serializeObject = function(){
+ 		 var o = {};
+ 		 var a = this.serializeArray();
+ 		 $.each(a, function() {
+ 		     if (o[this.name] !== undefined) {
+ 			     if (!o[this.name].push) {
+ 			         o[this.name] = [o[this.name]];
+ 			     }
+ 		         o[this.name].push(this.value || '');
+ 			 } else {
+ 			     o[this.name] = this.value || '';
+ 			 }
+ 		 });
+ 		 return o;
+ 	};
+    $('#table').bootstrapTable({
+ 	   	url: "/searchByCriteria",	       //请求后台的URL（*）
+        method: 'GET',                      //请求方式（*）
+        toolbar: '.searchArea',
+        striped: true,                      //是否显示行间隔色
+        cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        pagination: true,                   //是否显示分页（*）
+        sortable: false,                     //是否启用排序
+        sortOrder: "asc",                   //排序方式
+        sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+        queryParamsType:"limit",
+        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+        pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+        queryParams:queryParams,            //查询参数
+        search: false,                      //是否显示表格搜索
+        strictSearch: true,
+        showColumns: true,                  //是否显示所有的列（选择显示的列），使用权限控制每一列时，可把该按钮设置为false
+        showRefresh: true,                  //是否显示刷新按钮
+        minimumCountColumns: 2,             //最少允许的列数
+        clickToSelect: true,                //是否启用点击选中行
+        //height: 500,                      //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+        uniqueId: "ID",                     //每一行的唯一标识，一般为主键列
+        showToggle: true,                   //是否显示详细视图和列表视图的切换按钮
+        cardView: false,                    //是否显示详细视图
+        detailView: false,                  //是否显示父子表       
+        //singleSelect: true,               //禁止选,默认多选，放开时单选
+        columns: [{
+       	 checkbox: true,
+       	 width:50
+        },{
+            title: '序号',
+            halign: 'center',//表头居中
+            align: 'center',//内容居中
+            width: '5%',    //宽度5%
+            formatter:function (value, row, index) {
+                return index+1;
+            }
+        },{
+            field: 'userUid',
+            title: '用户ID',
+            visible: false //隐藏该列，不展示，也可以用权限控制这一行
+        }, {
+            field: 'userName',
+            halign: 'center',//表头居中
+            title: '姓名'
+        }, {
+            field: 'money',
+            halign: 'center',//表头居中
+            align: 'right',//居右
+            title: '余额'
+        }, {
+            field: 'sex',
+            halign: 'center',
+            title: '性别',
+            align: 'center',//内容居中
+            formatter:function (value, row, index) {
+                return value==1?"男":"女";
+            }
+        }, {
+            field: 'desc',
+            halign: 'center',
+            title: '个人描述'
+        }],
+        onLoadSuccess: function () {
+        	//alert("页面加载后的处理。。。");
+        },
+        formatLoadingMessage: function(){
+       	 return "请稍等，正在加载中。。。";
+        },
+        onLoadError: function () {
+            //showTips("数据加载失败！");
+        },
+        onDblClickRow: function (row, $element) {
+            var id = row.ID;
+        },
+        //分页改变时触发
+        onPageChange:function(number, size){
+        	queryParams.search=number;
+        }
+     });
+    //查询触发的事件
+    function searchByCriteria() {
+ 		$('#table').bootstrapTable('refresh');
+    };
+    // 查询条件，分页，检索条件等等
+    function queryParams(params) { 
+    	//此方法和后台的分页类Pager在接收参数上保持一致
+        var temp = {
+      		 pageSize: params.limit,
+      		 currentPage: params.offset/params.limit+1,
+             condition: $("#searchForm").serializeObject() //对查询条件的封装，可以尽可能地少写代码
+        };
+        return temp;
+     };
+    //获取选中的数据
+    var info = {};
+    //新增初始化
+    $("#addButton").click(function(){
+    	alert("新增事件"); 
+    	//TODO 新增处理事件
+    });
+ 	 //修改初始化
+ 	 $("#editButton").click(function(){
+ 		 var a= $("#table").bootstrapTable('getSelections');
+  		 if(a.length<=0){
+  			alert("请选择需要修改的数据！")
+  		 }else{
+  			info = a[0];
+  			alert("编辑事件，你选择了:" + info.userName); 
+  		    //TODO 编辑处理事件
+  		 }
+ 	 });
+ 	 //删除处理
+ 	 $("#deleteButton").click(function(){
+ 		var a= $("#table").bootstrapTable('getSelections');
+  		 if(a.length<=0){
+  			alert("请选择需要删除的数据！")
+  		 }else{
+  			confirm("确定要删除该数据吗？", function(index){
+  				 info = a[0];
+		       	 //TODO 删除事件的处理
+  			});
+  		 }
+ 	 });	 	
+    </script>
+</body>
+</html>
